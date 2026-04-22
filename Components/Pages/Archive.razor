@@ -1,0 +1,51 @@
+﻿@page "/archive"
+@using HollowDesk.Models
+
+<PageTitle>H.I.A. - Archives des Entités</PageTitle>
+
+<h1>[ ACCÈS ARCHIVES : NIVEAU 2 ]</h1>
+
+@if (entities == null)
+{
+    <p><em>Initialisation du flux de données...</em></p>
+}
+else
+{
+    <table class="hia-table">
+        <thead>
+            <tr>
+                <th>NOM DE CODE</th>
+                <th>DANGER</th>
+                <th>FACTION</th>
+                <th>DOSSIER</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in entities)
+            {
+                <tr>
+                    <td>@item.CodeName</td>
+                    <td>@item.Dangerosity</td>
+                    <td>@item.FactionName</td>
+                    <td>
+                        <a href="/file/@item.CodeName" class="btn-scan">CONSULTER</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Entity> entities;
+
+    protected override void OnInitialized()
+    {
+        entities = new List<Entity>
+{
+    // L'ordre est : Name, CodeName, ImagePath, Dangerosity, CombatInfo, CurrentIntel, Faction, Type, Feu, Elec, Glace, Ether, Phys, Vent
+    new Entity("Cavalier d'Éther", "Dullahan", "img/dullahan.png", Dangerosity.S, "Agressif", "...", "Ethereal", "Mutant", 0, 0, 0, 0, 0, 0),
+    new Entity("Pilleur des rues", "Thug-A", "img/thug.png", Dangerosity.C, "Basique", "...", "Humans", "Normal", 0, 0, 0, 0, 0, 0)
+};
+    }
+}

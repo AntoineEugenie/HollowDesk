@@ -1,0 +1,18 @@
+﻿@page "/Dashboard"
+
+<PageTitle>Ma Nouvelle Page</PageTitle>
+
+<h1>Bienvenue sur ma page !</h1>
+
+<p role="status">Nombre de clics : @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Cliquez ici</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
