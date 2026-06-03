@@ -1,0 +1,8 @@
+{
+    "version": "0.1.0.0",
+    "description": "H.I.A. Terminal — Hollow Investigative Association",
+    "homepage": "https://github.com/AntoineEugenie/HollowDesk/",
+    "url": "https://github.com/AntoineEugenie/HollowDesk/releases/download/v0.1.0.0/HollowDesk.zip",
+    "hash": "sha256:DF9A4D33CA8D0E0F002863F1FEF1600A54DFD0F93838D1F54DB7DF261B5CAAD6",
+    "bin": "HollowDesk.exe"
+}
