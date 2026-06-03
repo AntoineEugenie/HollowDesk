@@ -1,0 +1,90 @@
+﻿@page "/register"
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+<div class="login-wrapper">
+
+    <div class="login-deco-left">
+        <div class="login-deco-line"></div>
+        <div class="login-deco-text">H.I.A. // NEW CLEARANCE</div>
+        <div class="login-deco-line"></div>
+    </div>
+
+    <div class="login-panel">
+
+        <div class="login-header">
+            <div class="login-logo-tag">// HOLLOW INTELLIGENCE ARCHIVE</div>
+            <h1 class="login-logo-title">H.I.A.</h1>
+            <div class="login-logo-sub">NEW AGENT REGISTRATION</div>
+        </div>
+
+        <div class="login-corner tl"></div>
+        <div class="login-corner tr"></div>
+        <div class="login-corner bl"></div>
+        <div class="login-corner br"></div>
+
+        <div class="login-field">
+            <label class="login-label">> IDENTIFIER (EMAIL)</label>
+            <input type="email" @bind="email" placeholder="new.agent@hia.gov" class="login-input" />
+        </div>
+
+        <div class="login-field">
+            <label class="login-label">> PASSWORD</label>
+            <input type="password" @bind="password" placeholder="••••••••••••" class="login-input" />
+        </div>
+
+        <button @onclick="InscriptionAgent" class="login-btn">
+            <span class="login-btn-bracket">[</span>
+            SUBMIT CREDENTIALS
+            <span class="login-btn-bracket">]</span>
+        </button>
+
+        <div class="login-footer">
+            <a href="login" class="login-link">
+                › Already cleared? Sign in
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(statut))
+        {
+            <div class="login-status @(statut.Contains("Error") ? "login-status--error" : "login-status--info")">
+                > @statut
+            </div>
+        }
+
+    </div>
+
+    <div class="login-deco-right">
+        <div class="login-deco-line"></div>
+        <div class="login-deco-text">ZETA-SECTOR // NODE</div>
+        <div class="login-deco-line"></div>
+    </div>
+
+</div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string statut = "";
+
+    private async Task InscriptionAgent()
+    {
+        statut = "Creating agent profile...";
+
+        try
+        {
+            var session = await SupabaseClient.Auth.SignUp(email, password);
+
+            if (session != null)
+            {
+                statut = "SUCCESS! Agent profile has been created.";
+            }
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            var e = System.Text.Json.Nodes.JsonNode.Parse(ex.Message);
+            statut = $"Error {e["code"]} {e["error_code"]}: {e["msg"]}";
+        }
+    }
+}

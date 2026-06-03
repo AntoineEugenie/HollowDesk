@@ -1,5 +1,117 @@
 ﻿@page "/"
+@inject Supabase.Client SupabaseClient
 
-<h1>Wesh zede</h1>
+<div class="home-wrapper">
 
-Welcome to your new app.
+    <!-- Header -->
+    <div class="home-header">
+        <div class="home-header-left">
+            <div class="home-header-tag">// H.I.A. MAIN TERMINAL</div>
+            <h1 class="home-header-title">COMMAND CENTER</h1>
+        </div>
+        <div class="home-header-right">
+            <span class="home-header-meta">OS v4.1.9 // BUILD_8472</span>
+            <span class="home-header-meta">NODE: ZETA-SECTOR</span>
+        </div>
+    </div>
+
+    @if (isLoggedIn)
+    {
+        <!-- Welcome block -->
+        <div class="home-welcome">
+            <div class="home-welcome-corner tl"></div>
+            <div class="home-welcome-corner tr"></div>
+            <div class="home-welcome-corner bl"></div>
+            <div class="home-welcome-corner br"></div>
+            <div class="home-welcome-status">● SECURE CONNECTION ONLINE</div>
+            <div class="home-welcome-text">
+                WELCOME, AGENT <span class="home-welcome-name">@agentName.ToUpper()</span>
+            </div>
+            <div class="home-welcome-sub">Clearance verified — Full access to H.I.A. registries granted.</div>
+        </div>
+
+        <!-- Quick access -->
+        <div class="home-section-label">// QUICK PROTOCOL ACCESS</div>
+        <div class="home-cards">
+            <a href="archive" class="home-card">
+                <div class="home-card-corner tl"></div>
+                <div class="home-card-corner br"></div>
+                <div class="home-card-tag">DB.ARCHIVES</div>
+                <div class="home-card-title">ENTITY REGISTRY</div>
+                <div class="home-card-desc">Browse the complete index of registered Ethereals and manage entries.</div>
+                <div class="home-card-arrow">› ACCESS</div>
+            </a>
+
+            <a href="add-entity" class="home-card">
+                <div class="home-card-corner tl"></div>
+                <div class="home-card-corner br"></div>
+                <div class="home-card-tag">DB.INDEXER</div>
+                <div class="home-card-title">NEW ENTITY</div>
+                <div class="home-card-desc">Register a new threat into the database with native OS file upload.</div>
+                <div class="home-card-arrow">› ACCESS</div>
+            </a>
+
+            <a href="dashboard" class="home-card">
+                <div class="home-card-corner tl"></div>
+                <div class="home-card-corner br"></div>
+                <div class="home-card-tag">SYS.DASHBOARD</div>
+                <div class="home-card-title">GLOBAL MONITORING</div>
+                <div class="home-card-desc">Real-time surveillance of ether flux and latest indexed field reports.</div>
+                <div class="home-card-arrow">› ACCESS</div>
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Access denied -->
+        <div class="home-denied">
+            <div class="home-denied-icon">⚠</div>
+            <div class="home-denied-title">SECURITY ALERT — RESTRICTED ACCESS</div>
+            <div class="home-denied-text">
+                No active session detected. You are browsing in restricted guest mode.
+                Authenticate to gain access to H.I.A. databases.
+            </div>
+            <a href="login" class="home-denied-btn">[ INITIATE LOGIN ]</a>
+        </div>
+    }
+
+    <!-- System diagnostics -->
+    <div class="home-section-label" style="margin-top: 32px;">// SYSTEM DIAGNOSTICS</div>
+    <div class="home-diag">
+        <div class="home-diag-card">
+            <div class="home-diag-label">SYSTEM_LOAD</div>
+            <div class="home-diag-val" style="color: var(--blue);">CPU: 12%</div>
+            <div class="home-diag-val" style="color: var(--blue);">MEM: 4.2 / 64 TB</div>
+        </div>
+        <div class="home-diag-card">
+            <div class="home-diag-label">NETWORK_UPLINK</div>
+            <div class="home-diag-val" style="color: var(--green);">PING: 14ms</div>
+            <div class="home-diag-val" style="color: var(--green);">PACKET_LOSS: 0%</div>
+        </div>
+        <div class="home-diag-card">
+            <div class="home-diag-label">ACTIVE_THREATS</div>
+            <div class="home-diag-val" style="color: var(--red);">HOLLOWS: 1,042</div>
+            <div class="home-diag-val" style="color: var(--red);">ZONE: QUARANTINE</div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private bool isLoggedIn = false;
+    private string agentName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var session = SupabaseClient.Auth.CurrentSession;
+        if (session != null)
+        {
+            isLoggedIn = true;
+
+            if (!string.IsNullOrEmpty(SupabaseClient.Auth.CurrentUser?.Email))
+            {
+                agentName = SupabaseClient.Auth.CurrentUser.Email.Split('@')[0];
+            }
+        }
+    }
+}

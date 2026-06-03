@@ -1,18 +1,126 @@
-﻿@page "/Dashboard"
+﻿@page "/dashboard"
+@using HollowDesk.Models
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
 
-<PageTitle>Ma Nouvelle Page</PageTitle>
+<div class="dash-wrapper">
 
-<h1>Bienvenue sur ma page !</h1>
+    <!-- Header -->
+    <div class="dash-header">
+        <div class="dash-header-left">
+            <div class="dash-header-tag">// SYS.DASHBOARD</div>
+            <h1 class="dash-header-title">GLOBAL MONITORING</h1>
+        </div>
+        <div class="dash-header-right">
+            <span class="dash-online-dot"></span>
+            <span class="dash-online-label">SURVEILLANCE ACTIVE</span>
+        </div>
+    </div>
 
-<p role="status">Nombre de clics : @currentCount</p>
+    <div class="dash-grid">
 
-<button class="btn btn-primary" @onclick="IncrementCount">Cliquez ici</button>
+        <!-- RADAR -->
+        <div class="dash-panel">
+            <div class="dash-panel-label">// ETHER FLUX LOCATOR</div>
+            <div class="dash-radar-container">
+                <div class="dash-radar-sweep"></div>
+                <div class="dash-radar-ring r1"></div>
+                <div class="dash-radar-ring r2"></div>
+                <div class="dash-radar-ring r3"></div>
+                <div class="dash-radar-axis ax-h"></div>
+                <div class="dash-radar-axis ax-v"></div>
+                <div class="dash-blip b1"></div>
+                <div class="dash-blip b2"></div>
+                <div class="dash-blip b3"></div>
+                <div class="dash-radar-center"></div>
+            </div>
+            <div class="dash-radar-status">
+                Fluctuations detected — Sector 7 &amp; Out-Zone District
+            </div>
+        </div>
+
+        <!-- LOGS -->
+        <div class="dash-panel dash-panel--logs">
+            <div class="dash-panel-label">// LATEST INDEXED DOSSIERS</div>
+
+            @if (chargement)
+            {
+                <div class="dash-loading">
+                    <span class="dash-dot"></span>
+                    <span class="dash-dot"></span>
+                    <span class="dash-dot"></span>
+                    <span class="dash-loading-text">Decrypting transmissions...</span>
+                </div>
+            }
+            else if (derniersEthereens.Count == 0)
+            {
+                <div class="dash-empty">No recent signals on record.</div>
+            }
+            else
+            {
+                <div class="dash-logs">
+                    @foreach (var e in derniersEthereens)
+                    {
+                        <div class="dash-log-entry">
+                            <div class="dash-log-top">
+                                <span class="dash-log-time">[@DateTime.Now.ToString("HH:mm")]</span>
+                                <span class="dash-log-alert">ALERT_NEW_ENTRY</span>
+                            </div>
+                            <div class="dash-log-body">
+                                Entity <strong class="dash-log-name">@e.Name.ToUpper()</strong>
+                                <span class="dash-log-code">// @e.CodeName</span>
+                                registered — Threat :
+                                <span class="hia-threat @GetThreatClass(e.Dangerosity)">@e.Dangerosity.ToString()</span>
+                            </div>
+                            <a href="/entity/@e.Id" class="dash-log-link">[ VIEW DOSSIER ]</a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+
+</div>
 
 @code {
-    private int currentCount = 0;
+    private List<Entity> derniersEthereens = new List<Entity>();
+    private bool chargement = true;
 
-    private void IncrementCount()
+    private string GetThreatClass(Dangerosity d) => d switch
     {
-        currentCount++;
+        Dangerosity.B => "hia-threat-b",
+        Dangerosity.A => "hia-threat-a",
+        Dangerosity.S => "hia-threat-s",
+        Dangerosity.SS => "hia-threat-ss",
+        _ => "hia-threat-c"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SupabaseClient.Auth.CurrentSession == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var reponse = await SupabaseClient
+                .From<Entity>()
+                .Order("id", Postgrest.Constants.Ordering.Descending)
+                .Limit(3)
+                .Get();
+
+            derniersEthereens = reponse.Models ?? new List<Entity>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Monitoring load error : {ex.Message}");
+        }
+        finally
+        {
+            chargement = false;
+        }
     }
 }

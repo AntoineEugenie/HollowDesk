@@ -4,7 +4,7 @@ using System.Text;
 
 namespace HollowDesk.Models
 {
-    enum Dangerosity
+    public enum Dangerosity
     {
         C,
         B,

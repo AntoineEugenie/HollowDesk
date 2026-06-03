@@ -3,12 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:HollowDesk"
              xmlns:components="clr-namespace:HollowDesk.Components"
+             xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Maui"
              x:Class="HollowDesk.MainPage">
 
-    <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
-        <BlazorWebView.RootComponents>
-            <RootComponent Selector="#app" ComponentType="{x:Type components:Routes}" />
-        </BlazorWebView.RootComponents>
-    </BlazorWebView>
+    <ContentPage.Content>
+        <Grid>
+            <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
+                <BlazorWebView.RootComponents>
+                    <RootComponent Selector="#app" ComponentType="{x:Type components:Routes}" />
+                </BlazorWebView.RootComponents>
+            </BlazorWebView>
+
+            <tb:TaskbarIcon
+            IconSource="tray.ico"
+            x:Name="TrayIcon"
+            LeftClickCommand="{Binding ShowHideWindowCommand}"
+            NoLeftClickDelay="True"
+            >
+                <FlyoutBase.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Command="{Binding ShowHideWindowCommand}" Text="Show/Hide Window" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Command="{Binding ExitApplicationCommand}" Text="Exit" />
+                    </MenuFlyout>
+                </FlyoutBase.ContextFlyout>
+            </tb:TaskbarIcon>
+
+        </Grid>
+    </ContentPage.Content>
 
 </ContentPage>

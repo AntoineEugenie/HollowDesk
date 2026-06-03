@@ -1,0 +1,270 @@
+﻿@page "/add-entity"
+@using HollowDesk.Models
+@using System.IO
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+<div class="form-wrapper">
+
+    <!-- Header -->
+    <div class="form-header">
+        <div class="form-header-tag">// DB.INDEXER</div>
+        <h1 class="form-header-title">ENTITY REGISTRATION</h1>
+    </div>
+
+    
+        <!-- IDENTITY -->
+        <div class="form-section">
+            <div class="form-section-label">// IDENTITY AND CLASSIFICATION</div>
+            <div class="form-panel">
+
+                <div class="form-field">
+                    <label class="form-label">REAL NAME</label>
+                    <input type="text" @bind="newEntity.Name" class="form-input" placeholder="Entity name..." />
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label">CODE NAME</label>
+                    <input type="text" @bind="newEntity.CodeName" class="form-input" placeholder="Operational designation..." />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="form-label">FACTION</label>
+                        <input type="text" @bind="newEntity.Faction" class="form-input" placeholder="Origin..." />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">TYPE</label>
+                        <input type="text" @bind="newEntity.Type" class="form-input" placeholder="Classification..." />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">THREAT LEVEL</label>
+                        <select @bind="newEntity.Dangerosity" class="form-input">
+                            @foreach (var level in Enum.GetValues(typeof(Dangerosity)))
+                            {
+                                <option value="@level">@level.ToString()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISUAL ARCHIVE -->
+        <div class="form-section">
+            <div class="form-section-label">// VISUAL ARCHIVE</div>
+            <div class="form-panel">
+                <div @onclick="SelectImage" class="form-filepicker">
+                    <div class="form-filepicker-corner tl"></div>
+                    <div class="form-filepicker-corner tr"></div>
+                    <div class="form-filepicker-corner bl"></div>
+                    <div class="form-filepicker-corner br"></div>
+                    @if (imageBytesNatif == null)
+                    {
+                        <div class="form-filepicker-idle">
+                            <span class="form-filepicker-icon">◈</span>
+                            <span class="form-filepicker-text">[ CLICK TO BROWSE SYSTEM ]</span>
+                            <span class="form-filepicker-sub">Accepted formats : .PNG .JPG .WEBP</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-filepicker-ready">
+                            <span class="form-filepicker-check">✓</span>
+                            <span class="form-filepicker-filename">@nomImageNative</span>
+                            <span class="form-filepicker-sub">File ready for upload</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- RESISTANCES -->
+        <div class="form-section">
+            <div class="form-section-label">// RESISTANCE DATA (%)</div>
+            <div class="form-panel">
+                <div class="form-res-grid">
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Fire.webp" class="res-icon-img" /> FIRE</label>
+                        <input type="number" @bind="newEntity.ResFire" class="form-input" placeholder="0" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Electric.webp" class="res-icon-img" /> ELECTRIC</label>
+                        <input type="number" @bind="newEntity.ResElectric" class="form-input" placeholder="0" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ice.webp" class="res-icon-img" /> ICE</label>
+                        <input type="number" @bind="newEntity.ResIce" class="form-input" placeholder="0" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ether.webp" class="res-icon-img" /> ETHER</label>
+                        <input type="number" @bind="newEntity.ResEther" class="form-input" placeholder="0" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Physical.webp" class="res-icon-img" /> PHYSICAL</label>
+                        <input type="number" @bind="newEntity.ResPhysical" class="form-input" placeholder="0" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Wind.webp" class="res-icon-img" /> WIND</label>
+                        <input type="number" @bind="newEntity.ResWind" class="form-input" placeholder="0" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTEL & COMBAT -->
+        <div class="form-section">
+            <div class="form-section-label">// INTEL AND COMBAT</div>
+            <div class="form-panel">
+                <div class="form-field">
+                    <label class="form-label">FIELD INTELLIGENCE</label>
+                    <textarea @bind="newEntity.CurrentIntel" rows="4" class="form-input form-textarea" placeholder="Field observations, recorded behaviors..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">COMBAT DIRECTIVES</label>
+                    <textarea @bind="newEntity.CombatInfo" rows="4" class="form-input form-textarea" placeholder="Recommended strategies, exploitable weaknesses..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <button @onclick="CreateEthereal" class="form-submit">
+            [ SUBMIT AND INDEX ENTITY ]
+        </button>
+
+        @if (!string.IsNullOrEmpty(statutSucces))
+        {
+            <div class="hia-msg-success">@statutSucces</div>
+        }
+        @if (!string.IsNullOrEmpty(statutErreur))
+        {
+            <div class="hia-msg-error">@statutErreur</div>
+        }
+    }
+
+</div>
+
+@code {
+    private Entity newEntity = new Entity();
+    private bool isAdmin = false;
+    private string statutSucces = "";
+    private string statutErreur = "";
+
+    private byte[]? imageBytesNatif;
+    private string nomImageNative = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SupabaseClient.Auth.CurrentSession == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var reponseRole = await SupabaseClient.From<UserRole>().Get();
+            var profil = reponseRole.Models.FirstOrDefault();
+
+            if (profil != null && profil.Role.ToLower() == "admin")
+            {
+                isAdmin = true;
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/archive");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error : {ex.Message}");
+        }
+    }
+
+    private async Task SelectImage()
+    {
+        try
+        {
+            var formatsAutorises = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.WinUI, new[] { ".png", ".jpg", ".jpeg", ".webp" } }
+            });
+
+            var resultat = await Microsoft.Maui.Storage.FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select the entity's image",
+                FileTypes = formatsAutorises
+            });
+
+            if (resultat != null)
+            {
+                nomImageNative = resultat.FileName;
+
+                using var stream = await resultat.OpenReadAsync();
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+
+                imageBytesNatif = memoryStream.ToArray();
+            }
+        }
+        catch (Exception ex)
+        {
+            statutErreur = $"[SYSTEM ERROR] Failed to open explorer : {ex.Message}";
+        }
+    }
+
+    private async Task CreateEthereal()
+    {
+        statutSucces = "";
+        statutErreur = "";
+
+        if (imageBytesNatif == null)
+        {
+            statutErreur = "[ERROR] Please select an image before registering.";
+            return;
+        }
+
+        try
+        {
+            statutSucces = "Uploading image...";
+
+            string nomUniqueFichier = $"{Guid.NewGuid()}_{nomImageNative}";
+
+            await SupabaseClient.Storage
+                .From("entity-images")
+                .Upload(imageBytesNatif, nomUniqueFichier, new Supabase.Storage.FileOptions { Upsert = true });
+
+            newEntity.ImagePath = $"https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/entity-images/{nomUniqueFichier}";
+
+            statutSucces = "Image secured. Recording data...";
+
+            var reponse = await SupabaseClient.From<Entity>().Insert(newEntity);
+
+            if (reponse != null)
+            {
+                statutSucces = "[SUCCESS] Entity has been successfully indexed in the H.I.A. archives.";
+                newEntity = new Entity();
+                imageBytesNatif = null;
+                nomImageNative = "";
+            }
+
+#if WINDOWS
+            try
+            {
+                var toastXml = Windows.UI.Notifications.ToastNotificationManager.GetTemplateContent(Windows.UI.Notifications.ToastTemplateType.ToastText02);
+                var textElements = toastXml.GetElementsByTagName("text");
+                textElements[0].AppendChild(toastXml.CreateTextNode("H.I.A. Terminal"));
+                textElements[1].AppendChild(toastXml.CreateTextNode("New Ethereal successfully registered."));
+                var toast = new Windows.UI.Notifications.ToastNotification(toastXml);
+                Windows.UI.Notifications.ToastNotificationManager.CreateToastNotifier().Show(toast);
+            }
+            catch (Exception) { }
+#endif
+        }
+        catch (Exception ex)
+        {
+            statutErreur = $"[FAILED] {ex.Message}";
+        }
+    }
+}

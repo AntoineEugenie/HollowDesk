@@ -1,0 +1,314 @@
+﻿@page "/entity/{Id:int}"
+@using HollowDesk.Models
+@using System.Text.Json
+@using System.IO
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+<div class="detail-wrapper">
+
+    @if (chargement)
+    {
+        <div class="detail-loading">
+            <span class="detail-loading-dot"></span>
+            <span class="detail-loading-dot"></span>
+            <span class="detail-loading-dot"></span>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); letter-spacing: 2px;">DECRYPTING FILE...</span>
+        </div>
+    }
+    else if (entity == null)
+    {
+        <div class="hia-msg-error">[ERROR] No Ethereal matches this identifier.</div>
+    }
+    else
+    {
+        <!-- Topbar actions -->
+        <div class="detail-actions">
+            <button @onclick="RetourArchives" class="detail-btn-back">
+                ← ARCHIVES
+            </button>
+            <div style="display:flex; gap:8px;">
+                <button @onclick="ExporterRapportJson" class="detail-btn-export">
+                    [ EXPORT .JSON ]
+                </button>
+                @if (estAdmin)
+                {
+                    <a href="/edit-entity/@entity.Id" class="detail-btn-edit">
+                        [ EDIT ]
+                    </a>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(notificationExport))
+        {
+            <div class="hia-msg-success" style="margin-bottom:16px;">@notificationExport</div>
+        }
+
+        <!-- Main file -->
+        <div class="detail-card">
+
+            <!-- Portrait column -->
+            <div class="detail-col-left">
+                <div class="detail-portrait">
+                    <div class="detail-portrait-corner tl"></div>
+                    <div class="detail-portrait-corner tr"></div>
+                    <div class="detail-portrait-corner bl"></div>
+                    <div class="detail-portrait-corner br"></div>
+                    <img src="@entity.ImagePath" alt="@entity.Name" class="detail-portrait-img" />
+                    <div class="detail-portrait-overlay">
+                        <span class="hia-threat @GetThreatClass(entity.Dangerosity)">
+                            @entity.Dangerosity.ToString().ToUpper()
+                        </span>
+                    </div>
+                </div>
+
+                <div class="detail-id-block">
+                    <div class="detail-id-row">
+                        <span class="detail-id-label">FACTION</span>
+                        <span class="detail-id-val">@entity.Faction</span>
+                    </div>
+                    <div class="detail-id-row">
+                        <span class="detail-id-label">TYPE</span>
+                        <span class="detail-id-val">@entity.Type</span>
+                    </div>
+                    <div class="detail-id-row">
+                        <span class="detail-id-label">CODE</span>
+                        <span class="detail-id-val" style="color: var(--gold);">@entity.CodeName</span>
+                    </div>
+                    <div class="detail-id-row">
+                        <span class="detail-id-label">ID</span>
+                        <span class="detail-id-val" style="color: var(--text-muted);">#@entity.Id</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data column -->
+            <div class="detail-col-right">
+
+                <!-- Entity header -->
+                <div class="detail-entity-header">
+                    <div class="detail-entity-tag">// SECURITY DOSSIER</div>
+                    <h2 class="detail-entity-name">@entity.Name.ToUpper()</h2>
+                    <div class="detail-entity-divider"></div>
+                </div>
+
+                <!-- Resistances -->
+                <div class="detail-section-label">// RESISTANCE EVALUATION</div>
+                <div class="detail-resistances">
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Fire.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">FIRE</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResFire)" style="width: @GetResWidth(entity.ResFire)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResFire)">@FormatRes(entity.ResFire)</span>
+                    </div>
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Electric.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">ELEC</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResElectric)" style="width: @GetResWidth(entity.ResElectric)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResElectric)">@FormatRes(entity.ResElectric)</span>
+                    </div>
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ice.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">ICE</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResIce)" style="width: @GetResWidth(entity.ResIce)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResIce)">@FormatRes(entity.ResIce)</span>
+                    </div>
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ether.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">ETHER</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResEther)" style="width: @GetResWidth(entity.ResEther)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResEther)">@FormatRes(entity.ResEther)</span>
+                    </div>
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Physical.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">PHYS</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResPhysical)" style="width: @GetResWidth(entity.ResPhysical)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResPhysical)">@FormatRes(entity.ResPhysical)</span>
+                    </div>
+                    <div class="detail-res-row">
+                        <span class="detail-res-icon">
+                            <img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Wind.webp" class="res-icon-img" />
+                        </span>
+                        <span class="detail-res-name">WIND</span>
+                        <div class="detail-res-bar-bg">
+                            <div class="detail-res-bar @GetResClass(entity.ResWind)" style="width: @GetResWidth(entity.ResWind)%"></div>
+                        </div>
+                        <span class="detail-res-val @GetResValClass(entity.ResWind)">@FormatRes(entity.ResWind)</span>
+                    </div>
+                </div>
+
+                <!-- Field intel -->
+                <div class="detail-section-label" style="margin-top:20px;">// FIELD INTELLIGENCE</div>
+                <div class="detail-intel detail-intel--blue">
+                    <p class="detail-intel-text">@(string.IsNullOrWhiteSpace(entity.CurrentIntel) ? "No data on record." : entity.CurrentIntel)</p>
+                </div>
+
+                <!-- Combat directives -->
+                <div class="detail-section-label" style="margin-top:16px;">// COMBAT DIRECTIVES</div>
+                <div class="detail-intel detail-intel--red">
+                    <p class="detail-intel-text">@(string.IsNullOrWhiteSpace(entity.CombatInfo) ? "No specific directives." : entity.CombatInfo)</p>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Entity? entity;
+    private bool chargement = true;
+    private bool estAdmin = false;
+    private string notificationExport = "";
+
+    private string FormatRes(int val) => val > 0 ? $"+{val}%" : $"{val}%";
+
+    private double GetResWidth(int val)
+    {
+        if (val == 0) return 0;
+        return Math.Min(Math.Abs(val), 100);
+    }
+
+    private string GetResClass(int val) => val < 0
+        ? "detail-res-bar--negative"
+        : "detail-res-bar--positive";
+
+    private string GetResValClass(int val) => val switch
+    {
+        < 0 => "detail-res-val--negative",
+        0 => "detail-res-val--zero",
+        _ => "detail-res-val--positive"
+    };
+
+    private string GetThreatClass(Dangerosity d) => d switch
+    {
+        Dangerosity.C => "hia-threat-c",
+        Dangerosity.B => "hia-threat-b",
+        Dangerosity.A => "hia-threat-a",
+        Dangerosity.S => "hia-threat-s",
+        Dangerosity.SS => "hia-threat-ss",
+        _ => "hia-threat-c"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SupabaseClient.Auth.CurrentSession == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var reponseRole = await SupabaseClient.From<UserRole>().Get();
+            var profil = reponseRole.Models.FirstOrDefault();
+            if (profil != null && profil.Role?.ToLower() == "admin")
+            {
+                estAdmin = true;
+            }
+
+            var reponse = await SupabaseClient
+                .From<Entity>()
+                .Filter("id", Postgrest.Constants.Operator.Equals, Id)
+                .Get();
+
+            entity = reponse.Models.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Decryption error : {ex.Message}");
+        }
+        finally
+        {
+            chargement = false;
+        }
+    }
+
+    private async Task ExporterRapportJson()
+    {
+        if (entity == null) return;
+
+        try
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+
+            var donneesAExporter = new
+            {
+                EntityId = entity.Id,
+                RealName = entity.Name,
+                CodeName = entity.CodeName,
+                Classification = entity.Type,
+                OriginFaction = entity.Faction,
+                ThreatLevel = entity.Dangerosity.ToString(),
+                VisualArchiveLink = entity.ImagePath,
+                ElementalResistances = new
+                {
+                    Fire = entity.ResFire,
+                    Electric = entity.ResElectric,
+                    Ice = entity.ResIce,
+                    Ether = entity.ResEther,
+                    Physical = entity.ResPhysical,
+                    Wind = entity.ResWind
+                },
+                FieldIntelligence = entity.CurrentIntel,
+                CombatDirectives = entity.CombatInfo,
+                ExportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+            };
+
+            string jsonTexte = JsonSerializer.Serialize(donneesAExporter, options);
+
+            string defaultPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string dossierDocuments = Microsoft.Maui.Storage.Preferences.Default.Get("ExportFolderPath", defaultPath);
+            string nomFichier = $"HIA_Report_{entity.CodeName}.json";
+            string cheminComplet = Path.Combine(dossierDocuments, nomFichier);
+
+            await File.WriteAllTextAsync(cheminComplet, jsonTexte);
+
+            if (Application.Current?.Windows.Count > 0)
+            {
+                var pageActuelle = Application.Current.Windows[0].Page;
+                if (pageActuelle != null)
+                {
+                    await pageActuelle.DisplayAlertAsync(
+                        "💾 EXPORT COMPLETE",
+                        $"Report saved successfully.\n\nFile : {nomFichier}",
+                        "Close"
+                    );
+                }
+            }
+
+            notificationExport = $"[LOG] File generated : {cheminComplet}";
+        }
+        catch (Exception ex)
+        {
+            notificationExport = $"[ERROR] Write failure : {ex.Message}";
+        }
+    }
+
+    private void RetourArchives()
+    {
+        NavigationManager.NavigateTo("/archive");
+    }
+}

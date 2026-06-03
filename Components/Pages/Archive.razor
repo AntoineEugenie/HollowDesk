@@ -1,51 +1,193 @@
 ﻿@page "/archive"
 @using HollowDesk.Models
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
 
-<PageTitle>H.I.A. - Archives des Entités</PageTitle>
+<div class="archive-wrapper">
 
-<h1>[ ACCÈS ARCHIVES : NIVEAU 2 ]</h1>
+    <!-- Header -->
+    <div class="archive-header">
+        <div class="archive-header-left">
+            <div class="archive-header-tag">// DB.ARCHIVES</div>
+            <h1 class="archive-header-title">REGISTRE DES ÉTHÉRÉENS</h1>
+        </div>
+        <div class="archive-header-right">
+            <span class="archive-count">@EntitiesFiltrees.Count() ENTITÉ(S)</span>
+        </div>
+    </div>
 
-@if (entities == null)
-{
-    <p><em>Initialisation du flux de données...</em></p>
-}
-else
-{
-    <table class="hia-table">
-        <thead>
-            <tr>
-                <th>NOM DE CODE</th>
-                <th>DANGER</th>
-                <th>FACTION</th>
-                <th>DOSSIER</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in entities)
+    <!-- Barre de recherche -->
+    <div class="archive-search">
+        <span class="archive-search-icon">›</span>
+        <input type="text" @bind="searchQuery" @bind:event="oninput"
+               placeholder="RECHERCHER — NOM, CODE, FACTION, TYPE..."
+               class="archive-search-input" />
+        @if (!string.IsNullOrEmpty(searchQuery))
+        {
+            <button @onclick="() => searchQuery = string.Empty" class="archive-search-clear">✕</button>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorStatus))
+    {
+        <div class="hia-msg-error">@ErrorStatus</div>
+    }
+
+    @if (entities.Count == 0)
+    {
+        <div class="archive-empty">
+            <div class="archive-empty-icon">◈</div>
+            <div class="archive-empty-text">AUCUN ÉTHÉRÉEN TROUVÉ DANS LES ARCHIVES</div>
+            <div class="archive-empty-sub">La base de données est vide ou inaccessible.</div>
+        </div>
+    }
+    else if (!EntitiesFiltrees.Any())
+    {
+        <div class="archive-empty">
+            <div class="archive-empty-icon">◈</div>
+            <div class="archive-empty-text">AUCUN RÉSULTAT POUR "@searchQuery"</div>
+            <div class="archive-empty-sub">Modifiez votre recherche ou effacez le filtre.</div>
+        </div>
+    }
+    else
+    {
+        <div class="archive-list">
+            @foreach (var entity in EntitiesFiltrees)
             {
-                <tr>
-                    <td>@item.CodeName</td>
-                    <td>@item.Dangerosity</td>
-                    <td>@item.FactionName</td>
-                    <td>
-                        <a href="/file/@item.CodeName" class="btn-scan">CONSULTER</a>
-                    </td>
-                </tr>
+                <div class="archive-entry">
+
+                    <div class="archive-entry-portrait">
+                        <img src="@entity.ImagePath" alt="@entity.Name" class="archive-entry-img" />
+                    </div>
+
+                    <div class="archive-entry-info">
+                        <div class="archive-entry-name">@entity.Name.ToUpper()</div>
+                        <div class="archive-entry-meta">
+                            <span class="archive-entry-codename">// @entity.CodeName</span>
+                            <span class="archive-entry-sep">—</span>
+                            <span class="archive-entry-faction">@entity.Faction</span>
+                        </div>
+                        <div class="archive-entry-type">@entity.Type</div>
+                    </div>
+
+                    <div class="archive-entry-threat">
+                        <span class="hia-threat @GetThreatClass(entity.Dangerosity)">
+                            @entity.Dangerosity.ToString().ToUpper()
+                        </span>
+                    </div>
+
+                    <div class="archive-entry-actions">
+                        <a href="/entity/@entity.Id" class="archive-btn-file">
+                            [ DOSSIER ]
+                        </a>
+                        @if (isAdmin)
+                        {
+                            <button @onclick="() => DeleteEtherren(entity)" class="archive-btn-delete">
+                                [ PURGER ]
+                            </button>
+                        }
+                    </div>
+
+                </div>
             }
-        </tbody>
-    </table>
-}
+        </div>
+    }
+
+</div>
+
+<style>
+
+</style>
 
 @code {
-    private List<Entity> entities;
+    private List<Entity> entities = new List<Entity>();
+    private string ErrorStatus = "";
+    private bool isAdmin = false;
+    private string searchQuery = "";
 
-    protected override void OnInitialized()
+    private IEnumerable<Entity> EntitiesFiltrees => entities.Where(e =>
+        string.IsNullOrEmpty(searchQuery) ||
+        e.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+        e.CodeName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+        e.Faction.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+        e.Type.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+    );
+
+    private string GetThreatClass(Dangerosity d) => d switch
     {
-        entities = new List<Entity>
-{
-    // L'ordre est : Name, CodeName, ImagePath, Dangerosity, CombatInfo, CurrentIntel, Faction, Type, Feu, Elec, Glace, Ether, Phys, Vent
-    new Entity("Cavalier d'Éther", "Dullahan", "img/dullahan.png", Dangerosity.S, "Agressif", "...", "Ethereal", "Mutant", 0, 0, 0, 0, 0, 0),
-    new Entity("Pilleur des rues", "Thug-A", "img/thug.png", Dangerosity.C, "Basique", "...", "Humans", "Normal", 0, 0, 0, 0, 0, 0)
-};
+        Dangerosity.C => "hia-threat-c",
+        Dangerosity.B => "hia-threat-b",
+        Dangerosity.A => "hia-threat-a",
+        Dangerosity.S => "hia-threat-s",
+        Dangerosity.SS => "hia-threat-ss",
+        _ => "hia-threat-c"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SupabaseClient.Auth.CurrentSession == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var reponseRole = await SupabaseClient.From<UserRole>().Get();
+            var profil = reponseRole.Models.FirstOrDefault();
+
+            if (profil != null && profil.Role?.ToLower() == "admin")
+            {
+                isAdmin = true;
+            }
+
+            await ChargerDonnees();
+        }
+        catch (Exception ex)
+        {
+            ErrorStatus = $"[SYSTEM ERROR] {ex.Message}";
+        }
+    }
+
+    private async Task ChargerDonnees()
+    {
+        var reponse = await SupabaseClient.From<Entity>().Get();
+        entities = reponse.Models ?? new List<Entity>();
+    }
+
+    private async Task DeleteEtherren(Entity target)
+    {
+        bool confirmation = false;
+
+        if (Application.Current?.Windows.Count > 0)
+        {
+            var pageActuelle = Application.Current.Windows[0].Page;
+            if (pageActuelle != null)
+            {
+                confirmation = await pageActuelle.DisplayAlertAsync(
+                    "⚠️ SECURE CLASSIFICATION",
+                    $"Do you want to permanently purge {target.Name} from the H.I.A. archives?",
+                    "Confirm",
+                    "Cancel"
+                );
+            }
+        }
+
+        if (!confirmation) return;
+
+        try
+        {
+            await SupabaseClient
+                .From<Entity>()
+                .Filter("id", Postgrest.Constants.Operator.Equals, target.Id)
+                .Delete();
+
+            entities.Remove(target);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ErrorStatus = $"[PURGE FAILURE] {ex.Message}";
+        }
     }
 }

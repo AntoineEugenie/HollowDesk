@@ -1,0 +1,305 @@
+.home-wrapper {
+    font-family: var(--font-display);
+    padding: 8px 0 32px;
+}
+
+/* ── Header ── */
+.home-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    position: relative;
+}
+
+    .home-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 80px;
+        height: 2px;
+        background: var(--gold);
+    }
+
+.home-header-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+}
+
+.home-header-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--text-primary);
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.home-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.home-header-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+/* ── Bienvenue ── */
+.home-welcome {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.home-welcome-corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--gold);
+    border-style: solid;
+}
+
+    .home-welcome-corner.tl {
+        top: -1px;
+        left: -1px;
+        border-width: 2px 0 0 2px;
+    }
+
+    .home-welcome-corner.tr {
+        top: -1px;
+        right: -1px;
+        border-width: 2px 2px 0 0;
+    }
+
+    .home-welcome-corner.bl {
+        bottom: -1px;
+        left: -1px;
+        border-width: 0 0 2px 2px;
+    }
+
+    .home-welcome-corner.br {
+        bottom: -1px;
+        right: -1px;
+        border-width: 0 2px 2px 0;
+    }
+
+.home-welcome-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.home-welcome-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.home-welcome-name {
+    color: var(--gold);
+}
+
+.home-welcome-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* ── Label de section ── */
+.home-section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+/* ── Cartes accès rapide ── */
+.home-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.home-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 18px;
+    text-decoration: none;
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .home-card:hover {
+        border-color: var(--gold);
+        background: var(--bg-hover);
+    }
+
+.home-card-corner {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.home-card:hover .home-card-corner {
+    opacity: 1;
+}
+
+.home-card-corner.tl {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+}
+
+.home-card-corner.br {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 2px 2px 0;
+}
+
+.home-card-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gold);
+    letter-spacing: 2px;
+}
+
+.home-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
+.home-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-family: var(--font-mono);
+    flex: 1;
+}
+
+.home-card-arrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-top: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.home-card:hover .home-card-arrow {
+    opacity: 1;
+}
+
+/* ── Accès refusé ── */
+.home-denied {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    padding: 28px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.home-denied-icon {
+    font-size: 24px;
+    color: var(--red);
+}
+
+.home-denied-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--red);
+    text-transform: uppercase;
+}
+
+.home-denied-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    letter-spacing: 1px;
+}
+
+.home-denied-btn {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 10px 20px;
+    background: var(--red);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-decoration: none;
+    text-transform: uppercase;
+    align-self: flex-start;
+    transition: opacity 0.2s;
+}
+
+    .home-denied-btn:hover {
+        opacity: 0.85;
+    }
+
+/* ── Diagnostics ── */
+.home-diag {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.home-diag-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+}
+
+.home-diag-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.home-diag-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    line-height: 1.8;
+}

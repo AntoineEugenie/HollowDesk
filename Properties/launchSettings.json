@@ -3,6 +3,10 @@
     "Windows Machine": {
       "commandName": "Project",
       "nativeDebugging": false
+    },
+    "HollowDesk (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
     }
   }
 }

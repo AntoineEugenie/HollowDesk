@@ -1,0 +1,304 @@
+﻿@page "/edit-entity/{Id:int}"
+@using HollowDesk.Models
+@using System.IO
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+<div class="form-wrapper">
+
+    <!-- Header -->
+    <div class="form-header">
+        <div class="form-header-tag">// DB.EDIT</div>
+        <h1 class="form-header-title">UPDATE DOSSIER</h1>
+    </div>
+
+    @if (chargement)
+    {
+        <div style="display:flex; align-items:center; gap:8px; padding:40px 0;">
+            <span class="form-dot"></span>
+            <span class="form-dot"></span>
+            <span class="form-dot"></span>
+            <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-secondary); letter-spacing:2px;">RETRIEVING DATA...</span>
+        </div>
+    }
+    else if (!estAdmin)
+    {
+        <div class="hia-msg-error" style="margin-top:20px;">
+            [ACCESS DENIED] Administrator clearance required.
+        </div>
+    }
+    else if (entityToEdit == null)
+    {
+        <div class="hia-msg-error" style="margin-top:20px;">
+            [ERROR] Unable to locate the requested entity.
+        </div>
+    }
+    else
+    {
+        <!-- IDENTITY -->
+        <div class="form-section">
+            <div class="form-section-label">// RE-CLASSIFICATION</div>
+            <div class="form-panel">
+                <div class="form-field">
+                    <label class="form-label">REAL NAME</label>
+                    <input type="text" @bind="entityToEdit.Name" class="form-input" />
+                </div>
+                <div class="form-field">
+                    <label class="form-label">CODE NAME</label>
+                    <input type="text" @bind="entityToEdit.CodeName" class="form-input" />
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label class="form-label">FACTION</label>
+                        <input type="text" @bind="entityToEdit.Faction" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">TYPE</label>
+                        <input type="text" @bind="entityToEdit.Type" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">THREAT LEVEL</label>
+                        <select @bind="entityToEdit.Dangerosity" class="form-input">
+                            @foreach (var niveau in Enum.GetValues(typeof(Dangerosity)))
+                            {
+                                <option value="@niveau">@niveau.ToString()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISUAL ARCHIVE -->
+        <div class="form-section">
+            <div class="form-section-label">// VISUAL ARCHIVE</div>
+            <div class="form-panel">
+                <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                    <div class="form-current-img">
+                        <div class="form-current-img-label">CURRENT IMAGE</div>
+                        <img src="@entityToEdit.ImagePath" alt="Current" class="form-current-img-preview" />
+                    </div>
+                    <div style="flex:1; min-width:200px;">
+                        <div @onclick="SelectImage" class="form-filepicker">
+                            <div class="form-filepicker-corner tl"></div>
+                            <div class="form-filepicker-corner tr"></div>
+                            <div class="form-filepicker-corner bl"></div>
+                            <div class="form-filepicker-corner br"></div>
+                            @if (imageBytesNatif == null)
+                            {
+                                <div class="form-filepicker-idle">
+                                    <span class="form-filepicker-icon">◈</span>
+                                    <span class="form-filepicker-text">[ NEW IMAGE ]</span>
+                                    <span class="form-filepicker-sub">Leave empty to keep current</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="form-filepicker-ready">
+                                    <span class="form-filepicker-check">✓</span>
+                                    <span class="form-filepicker-filename">@nomImageNative</span>
+                                    <span class="form-filepicker-sub">Will replace current image</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESISTANCES -->
+        <div class="form-section">
+            <div class="form-section-label">// RESISTANCE RE-CALIBRATION (%)</div>
+            <div class="form-panel">
+                <div class="form-res-grid">
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Fire.webp" class="res-icon-img" /> FIRE</label>
+                        <input type="number" @bind="entityToEdit.ResFire" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Electric.webp" class="res-icon-img" /> ELECTRIC</label>
+                        <input type="number" @bind="entityToEdit.ResElectric" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ice.webp" class="res-icon-img" /> ICE</label>
+                        <input type="number" @bind="entityToEdit.ResIce" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Ether.webp" class="res-icon-img" /> ETHER</label>
+                        <input type="number" @bind="entityToEdit.ResEther" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Physical.webp" class="res-icon-img" /> PHYSICAL</label>
+                        <input type="number" @bind="entityToEdit.ResPhysical" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label"><img src="https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/icons/Icon_Wind.webp" class="res-icon-img" /> WIND</label>
+                        <input type="number" @bind="entityToEdit.ResWind" class="form-input" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTEL & COMBAT -->
+        <div class="form-section">
+            <div class="form-section-label">// REPORT UPDATES</div>
+            <div class="form-panel">
+                <div class="form-field">
+                    <label class="form-label">FIELD INTELLIGENCE</label>
+                    <textarea @bind="entityToEdit.CurrentIntel" rows="4" class="form-input form-textarea"></textarea>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">COMBAT DIRECTIVES</label>
+                    <textarea @bind="entityToEdit.CombatInfo" rows="4" class="form-input form-textarea"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <button @onclick="SauvegarderModifications" class="form-submit">
+            [ SAVE CHANGES ]
+        </button>
+
+        @if (!string.IsNullOrEmpty(statutSucces))
+        {
+            <div class="hia-msg-success">@statutSucces</div>
+        }
+        @if (!string.IsNullOrEmpty(statutErreur))
+        {
+            <div class="hia-msg-error">@statutErreur</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Entity? entityToEdit;
+    private bool estAdmin = false;
+    private bool chargement = true;
+    private string statutSucces = "";
+    private string statutErreur = "";
+
+    private byte[]? imageBytesNatif;
+    private string nomImageNative = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SupabaseClient.Auth.CurrentSession == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        try
+        {
+            var reponseRole = await SupabaseClient.From<UserRole>().Get();
+            var profil = reponseRole.Models.FirstOrDefault();
+            if (profil != null && profil.Role?.ToLower() == "admin")
+            {
+                estAdmin = true;
+            }
+
+            if (estAdmin)
+            {
+                var reponseEntity = await SupabaseClient
+                    .From<Entity>()
+                    .Filter("id", Postgrest.Constants.Operator.Equals, Id)
+                    .Get();
+
+                entityToEdit = reponseEntity.Models.FirstOrDefault();
+            }
+        }
+        catch (Exception ex)
+        {
+            statutErreur = $"[INIT ERROR] {ex.Message}";
+        }
+        finally
+        {
+            chargement = false;
+        }
+    }
+
+    private async Task SelectImage()
+    {
+        try
+        {
+            var formatsAutorises = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.WinUI, new[] { ".png", ".jpg", ".jpeg", ".webp" } }
+            });
+
+            var resultat = await Microsoft.Maui.Storage.FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select the visual archive",
+                FileTypes = formatsAutorises
+            });
+
+            if (resultat != null)
+            {
+                nomImageNative = resultat.FileName;
+
+                using var stream = await resultat.OpenReadAsync();
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+
+                imageBytesNatif = memoryStream.ToArray();
+            }
+        }
+        catch (Exception ex)
+        {
+            statutErreur = $"[SYSTEM ERROR] Explorer access denied : {ex.Message}";
+        }
+    }
+
+    private async Task SauvegarderModifications()
+    {
+        if (entityToEdit == null) return;
+
+        statutSucces = "";
+        statutErreur = "";
+
+        try
+        {
+            if (imageBytesNatif != null)
+            {
+                statutSucces = "Uploading new visual archive...";
+
+                if (!string.IsNullOrWhiteSpace(entityToEdit.ImagePath))
+                {
+                    try
+                    {
+                        string ancienNomFichier = entityToEdit.ImagePath.Substring(entityToEdit.ImagePath.LastIndexOf('/') + 1);
+                        await SupabaseClient.Storage
+                            .From("entity-images")
+                            .Remove(new List<string> { ancienNomFichier });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[INFO] Previous image not found : {ex.Message}");
+                    }
+                }
+
+                string nomUniqueFichier = $"{Guid.NewGuid()}_{nomImageNative}";
+
+                await SupabaseClient.Storage
+                    .From("entity-images")
+                    .Upload(imageBytesNatif, nomUniqueFichier, new Supabase.Storage.FileOptions { Upsert = true });
+
+                entityToEdit.ImagePath = $"https://jrmsodsbonegbbfnmgit.supabase.co/storage/v1/object/public/entity-images/{nomUniqueFichier}";
+            }
+
+            statutSucces = "Updating registries...";
+
+            await SupabaseClient.From<Entity>().Update(entityToEdit);
+
+            statutSucces = "[SUCCESS] Dossier has been fully updated.";
+
+            await Task.Delay(1500);
+            NavigationManager.NavigateTo($"/entity/{Id}");
+        }
+        catch (Exception ex)
+        {
+            statutErreur = $"[FAILED] {ex.Message}";
+        }
+    }
+}

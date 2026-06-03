@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="HollowDesk.csproj" />
+  <Project Path="HollowDesk.csproj">
+    <Deploy />
+  </Project>
 </Solution>

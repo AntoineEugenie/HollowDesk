@@ -1,17 +1,53 @@
 ﻿@inherits LayoutComponentBase
+@inject HollowDesk.Services.ThemeService ThemeService
+@implements IDisposable
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="hia-root @ThemeService.ThemeClass @(ThemeService.ScanlinesActive ? "scanlines" : "")">
+
+    <div class="hia-layout">
+
+        <aside class="hia-sidebar">
+            <NavMenu />
+        </aside>
+
+        <div class="hia-main-area">
+
+            <header class="hia-topbar">
+                <div class="hia-topbar-left">
+                    <span class="hia-topbar-tag">// SYS</span>
+                    <span class="hia-topbar-title">H.I.A. TERMINAL</span>
+                    <span class="hia-topbar-version">v4.1 — SECURE_MODE</span>
+                </div>
+                <div class="hia-topbar-right">
+                    <span class="hia-status-dot"></span>
+                    <span class="hia-status-label">UPLINK ACTIVE</span>
+                </div>
+            </header>
+
+            <main class="hia-content">
+                <article class="px-4">
+                    @Body
+                </article>
+            </main>
+
+        </div>
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/blazor" target="_blank">À propos</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ThemeService.OnThemeChanged += RafraichirInterface;
+    }
+
+    private void RafraichirInterface()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= RafraichirInterface;
+    }
+}

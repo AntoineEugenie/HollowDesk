@@ -1,21 +1,298 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Mon App Hybride</a>
+﻿@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+<div class="hia-nav-wrapper">
+
+    <!-- Logo / Titre -->
+    <div class="hia-nav-logo">
+        <div class="hia-nav-logo-tag">// H.I.A.</div>
+        <div class="hia-nav-logo-title">HOLLOW DESK</div>
+        <div class="hia-nav-logo-sub">INTELLIGENCE ARCHIVE</div>
     </div>
-</div>
 
-<div class="nav-scrollable">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Accueil
+    <!-- Bloc agent connecté -->
+    @if (SupabaseClient.Auth.CurrentSession == null)
+    {
+        <div class="hia-nav-agent hia-nav-agent--disconnected">
+            <span class="hia-nav-agent-status">● DISCONNECTED</span>
+            <NavLink class="hia-nav-auth-link" href="login">
+                [ AUTH_REQUIRED ]
             </NavLink>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="mapage">
-                <span class="bi bi-plus-square-fill" aria-hidden="true"></span> Ma Page
-            </NavLink>
+    }
+    else
+    {
+        <div class="hia-nav-agent hia-nav-agent--connected">
+            <span class="hia-nav-agent-status">● SECURE UPLINK</span>
+            <span class="hia-nav-agent-email">@SupabaseClient.Auth.CurrentUser?.Email</span>
+            <button @onclick="DeconnexionAgent" class="hia-nav-disconnect">
+                [ SYS.DISCONNECT ]
+            </button>
         </div>
+    }
+
+    <!-- Séparateur -->
+    <div class="hia-nav-divider"></div>
+
+    <!-- Navigation principale -->
+    <nav class="hia-nav-links">
+
+        <div class="hia-nav-section-label">SYSTEM</div>
+
+        <NavLink class="hia-nav-link" href="" Match="NavLinkMatch.All">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">SYS.</span>HOME
+        </NavLink>
+
+        <NavLink class="hia-nav-link" href="dashboard">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">SYS.</span>DASHBOARD
+        </NavLink>
+
+        <div class="hia-nav-section-label" style="margin-top: 16px;">DATA BASE</div>
+
+        <NavLink class="hia-nav-link" href="archive">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">DB.</span>ARCHIVES
+        </NavLink>
+
+        <NavLink class="hia-nav-link" href="add-entity">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">DB.</span>INDEX
+        </NavLink>
+
+        <div class="hia-nav-section-label" style="margin-top: 16px;">CONFIGURATION</div>
+
+        <NavLink class="hia-nav-link" href="settings">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">CFG.</span>SETTINGS
+        </NavLink>
+
+        <NavLink class="hia-nav-link" href="about">
+            <span class="hia-nav-link-arrow">›</span>
+            <span class="hia-nav-link-code">DOC.</span>ABOUT
+        </NavLink>
+
     </nav>
+
+    <!-- Pied de sidebar -->
+    <div class="hia-nav-footer">
+        <div class="hia-nav-footer-line">OS v4.1.9 // BUILD_8472</div>
+        <div class="hia-nav-footer-line">NODE: ZERO-SECTOR</div>
+    </div>
+
 </div>
+
+<style>
+    /* ── Wrapper ── */
+    .hia-nav-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 0;
+        font-family: 'Rajdhani', 'Courier New', monospace;
+    }
+
+    /* ── Logo ── */
+    .hia-nav-logo {
+        padding: 18px 16px 14px;
+        border-bottom: 1px solid var(--border, #1e1e28);
+        position: relative;
+    }
+
+        .hia-nav-logo::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 16px;
+            width: 40px;
+            height: 2px;
+            background: var(--gold, #c8a84b);
+        }
+
+    .hia-nav-logo-tag {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 9px;
+        color: var(--gold, #c8a84b);
+        letter-spacing: 3px;
+        margin-bottom: 3px;
+    }
+
+    .hia-nav-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: var(--text-primary, #e8e0d0);
+        line-height: 1;
+    }
+
+    .hia-nav-logo-sub {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 9px;
+        color: var(--text-muted, #44444c);
+        letter-spacing: 2px;
+        margin-top: 3px;
+    }
+
+    /* ── Bloc agent ── */
+    .hia-nav-agent {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border, #1e1e28);
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .hia-nav-agent-status {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 9px;
+        letter-spacing: 2px;
+    }
+
+    .hia-nav-agent--connected .hia-nav-agent-status {
+        color: var(--green, #4caf8a);
+    }
+
+    .hia-nav-agent--disconnected .hia-nav-agent-status {
+        color: var(--red, #e24b4a);
+    }
+
+    .hia-nav-agent-email {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 10px;
+        color: var(--text-secondary, #888880);
+        word-break: break-all;
+        line-height: 1.4;
+    }
+
+    .hia-nav-disconnect {
+        margin-top: 4px;
+        background: transparent;
+        border: 1px solid rgba(226, 75, 74, 0.4);
+        color: var(--red, #e24b4a);
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 10px;
+        padding: 5px 8px;
+        cursor: pointer;
+        letter-spacing: 1px;
+        text-align: left;
+        transition: background 0.2s;
+    }
+
+        .hia-nav-disconnect:hover {
+            background: rgba(226, 75, 74, 0.1);
+        }
+
+    .hia-nav-auth-link {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 11px;
+        color: var(--red, #e24b4a);
+        text-decoration: none;
+        border: 1px dashed rgba(226, 75, 74, 0.5);
+        padding: 5px 8px;
+        letter-spacing: 1px;
+        transition: background 0.2s;
+        display: block;
+    }
+
+        .hia-nav-auth-link:hover {
+            background: rgba(226, 75, 74, 0.08);
+        }
+
+    /* ── Séparateur ── */
+    .hia-nav-divider {
+        height: 1px;
+        background: var(--border, #1e1e28);
+        margin: 0;
+    }
+
+    /* ── Labels de section ── */
+    .hia-nav-section-label {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 8px;
+        color: var(--text-muted, #44444c);
+        letter-spacing: 3px;
+        padding: 12px 16px 4px;
+        text-transform: uppercase;
+    }
+
+    /* ── Liens nav ── */
+    .hia-nav-links {
+        flex: 1;
+        padding: 8px 0;
+        overflow-y: auto;
+    }
+
+    .hia-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        color: var(--text-secondary, #888880);
+        text-decoration: none;
+        text-transform: uppercase;
+        position: relative;
+        transition: color 0.2s, background 0.2s;
+        border-left: 2px solid transparent;
+    }
+
+        .hia-nav-link:hover {
+            color: var(--text-primary, #e8e0d0);
+            background: var(--bg-hover, #17171f);
+        }
+
+        .hia-nav-link.active {
+            color: var(--gold, #c8a84b);
+            background: var(--bg-hover, #17171f);
+            border-left-color: var(--gold, #c8a84b);
+        }
+
+    .hia-nav-link-arrow {
+        color: var(--gold, #c8a84b);
+        opacity: 0;
+        font-size: 14px;
+        transition: opacity 0.2s;
+        width: 10px;
+        flex-shrink: 0;
+    }
+
+    .hia-nav-link:hover .hia-nav-link-arrow,
+    .hia-nav-link.active .hia-nav-link-arrow {
+        opacity: 1;
+    }
+
+    .hia-nav-link-code {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 10px;
+        color: var(--gold-dim, #8a7030);
+    }
+
+    .hia-nav-link.active .hia-nav-link-code {
+        color: var(--gold, #c8a84b);
+    }
+
+    /* ── Footer sidebar ── */
+    .hia-nav-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border, #1e1e28);
+    }
+
+    .hia-nav-footer-line {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 9px;
+        color: var(--text-muted, #44444c);
+        letter-spacing: 1px;
+        line-height: 1.8;
+    }
+</style>
+
+@code {
+    private async Task DeconnexionAgent()
+    {
+        await SupabaseClient.Auth.SignOut();
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+}

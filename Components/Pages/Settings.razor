@@ -1,0 +1,139 @@
+﻿@page "/settings"
+@inject NavigationManager NavigationManager
+@inject HollowDesk.Services.ThemeService ThemeService
+
+<div class="settings-wrapper">
+
+    <div class="settings-header">
+        <div class="settings-header-tag">// CFG.SETTINGS</div>
+        <h1 class="settings-header-title">SYSTEM CONFIGURATION</h1>
+    </div>
+
+    <!-- Local archive -->
+    <div class="settings-section">
+        <div class="settings-section-label">// LOCAL ARCHIVE</div>
+        <div class="settings-panel">
+            <p class="settings-desc">Destination directory for .JSON report exports :</p>
+            <div class="settings-path-row">
+                <input type="text" @bind="dossierSauvegarde" readonly class="settings-input settings-input--path" />
+                <button @onclick="ParcourirDossierNativement" class="settings-btn-browse">
+                    [ BROWSE ]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="settings-section">
+        <div class="settings-section-label">// CATHODE RENDERING</div>
+        <div class="settings-panel">
+
+            <div class="settings-field">
+                <label class="settings-label">PHOSPHOR COLOR</label>
+                <div class="settings-theme-options">
+                    <div class="settings-theme-opt @(couleurTheme == "green" ? "active" : "")" @onclick='() => SelectTheme("green")'>
+                        <span class="settings-theme-dot" style="background:#4caf8a;"></span>
+                        <span class="settings-theme-name">SAGE GREEN</span>
+                        <span class="settings-theme-sub">#4caf8a</span>
+                    </div>
+                    <div class="settings-theme-opt @(couleurTheme == "orange" ? "active" : "")" @onclick='() => SelectTheme("orange")'>
+                        <span class="settings-theme-dot" style="background:#ef9f27;"></span>
+                        <span class="settings-theme-name">AMBER GOLD</span>
+                        <span class="settings-theme-sub">#ef9f27</span>
+                    </div>
+                    <div class="settings-theme-opt @(couleurTheme == "gold" ? "active" : "")" @onclick='() => SelectTheme("gold")'>
+                        <span class="settings-theme-dot" style="background:#c8a84b;"></span>
+                        <span class="settings-theme-name">NEUTRAL GOLD</span>
+                        <span class="settings-theme-sub">#c8a84b</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-field" style="margin-top:16px;">
+                <label class="settings-label">SCANLINES EFFECT</label>
+                <div class="settings-toggle-row">
+                    <span class="settings-toggle-desc">Enable cathode ray TV scan line effect</span>
+                    <label class="settings-toggle">
+                        <input type="checkbox" @bind="scanlinesActives" @bind:after="SauvegarderConfiguration" />
+                        <span class="settings-toggle-track">
+                            <span class="settings-toggle-thumb"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <button @onclick="AppliquerEtQuitter" class="settings-submit">
+        [ SAVE AND APPLY ]
+    </button>
+
+</div>
+
+@code {
+    private string dossierSauvegarde = "";
+    private string couleurTheme = "green";
+    private bool scanlinesActives = true;
+
+    protected override void OnInitialized()
+    {
+        string defaultPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        dossierSauvegarde = Preferences.Default.Get("ExportFolderPath", defaultPath);
+        couleurTheme = Preferences.Default.Get("ThemeColor", "green");
+        scanlinesActives = Preferences.Default.Get("ScanlinesEnabled", true);
+    }
+
+    private void SelectTheme(string theme)
+    {
+        couleurTheme = theme;
+        SauvegarderConfiguration();
+    }
+
+    private void SauvegarderConfiguration()
+    {
+        Preferences.Default.Set("ExportFolderPath", dossierSauvegarde);
+        Preferences.Default.Set("ThemeColor", couleurTheme);
+        Preferences.Default.Set("ScanlinesEnabled", scanlinesActives);
+        ThemeService.MettreAJourLocalement();
+    }
+
+    private async Task ParcourirDossierNativement()
+    {
+#if WINDOWS
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.FileTypeFilter.Add("*");
+
+            var mauiWindow = Microsoft.Maui.Controls.Application.Current?.Windows[0];
+            var nativeWindow = mauiWindow?.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
+
+            if (nativeWindow != null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+                var folder = await picker.PickSingleFolderAsync();
+                if (folder != null)
+                {
+                    dossierSauvegarde = folder.Path;
+                    SauvegarderConfiguration();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Folder picker error : {ex.Message}");
+        }
+#else
+        await App.Current.MainPage.DisplayAlert("Unsupported OS", "The native folder picker is configured for Windows only.", "OK");
+#endif
+    }
+
+    private void AppliquerEtQuitter()
+    {
+        SauvegarderConfiguration();
+        NavigationManager.NavigateTo("/dashboard", forceLoad: true);
+    }
+}
