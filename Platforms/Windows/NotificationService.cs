@@ -5,7 +5,7 @@ namespace HollowDesk.Platforms.Windows
 {
     public static class NotificationService
     {
-        public static void AfficherToast(string titre, string message)
+        public static void Show(string titre, string message)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
