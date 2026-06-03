@@ -4,8 +4,5 @@
     "homepage": "https://github.com/AntoineEugenie/HollowDesk/",
     "url": "https://github.com/AntoineEugenie/HollowDesk/releases/download/v0.1.0.0/HollowDesk.zip",
     "hash": "sha256:99DBABC8773A2C51C0EF950DD6197BC8711E7141288434BC2E92A0FBA72FAAF3",
-    "bin": "HollowDesk.exe",
-    "shortcuts": [
-        ["HollowDesk.exe", "HollowDesk"]
-    ]
+    "bin": "HollowDesk.exe"
 }
